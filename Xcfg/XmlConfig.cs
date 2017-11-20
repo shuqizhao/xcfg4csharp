@@ -52,7 +52,7 @@ namespace Xcfg
 
         public static T GetRemoteConfigSectionParam(string cfgName)
         {
-            
+            return default(T);
         }
 
         [XmlAttribute("major")]
