@@ -14,7 +14,7 @@ namespace Xcfg
         {
             
         }
-        public static T Instance { get; private set; }
+        public static T Instance { get; protected set; }
 
         static XmlConfig()
         {
@@ -46,13 +46,35 @@ namespace Xcfg
             }
             else
             {
-                
+                var rcs = GetRemoteConfigSectionParam(cfgName);
             }
         }
 
-        public static T GetRemoteConfigSectionParam(string cfgName)
+        public static RemoteConfigSection GetRemoteConfigSectionParam(string cfgName)
         {
-            return default(T);
+            var rcfg = new RemoteConfigSectionCollection();
+            rcfg.Application = Helper.GetAppName();
+            rcfg.Machine = Environment.MachineName;
+            rcfg.Environment = Helper.GetEnvironment();
+            rcfg.Sections = new RemoteConfigSection[1];
+            rcfg.Sections[0] = new RemoteConfigSection { SectionName = cfgName.ToLower(), MajorVersion = 1, MinorVersion = 0 };
+            var rcfgResult = GetServerVersions(rcfg);
+            if (rcfgResult == null || rcfgResult.Sections.Length == 0)
+            {
+                return null;
+            }
+            else
+            {
+                return rcfgResult.Sections[0];
+            }
+        }
+
+        private static RemoteConfigSectionCollection GetServerVersions(RemoteConfigSectionCollection rcfg)
+        {
+            var bytes = Helper.SerializeToXml(rcfg);
+            var url = Helper.GetRemoteCfgUrl();
+            var xmlStr = Helper.HttpPost(url, Encoding.UTF8.GetString(bytes));
+            return Helper.DeserializeFromXml<RemoteConfigSectionCollection>(xmlStr);
         }
 
         [XmlAttribute("major")]

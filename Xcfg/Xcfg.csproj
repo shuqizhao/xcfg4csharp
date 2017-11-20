@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helper.cs" />
+    <Compile Include="RemoteConfigSection.cs" />
     <Compile Include="RemoteConfigSectionCollection.cs" />
     <Compile Include="XmlConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -61,37 +63,90 @@ namespace Xcfg
         /// /// <param name="filePath"></param>   
         /// /// <param name="obj"></param>  
         /// /// <param name="type"></param>   
-        public static void SerializeToXml<T>(string filePath, T obj)
+        public static byte[] SerializeToXml<T>(T obj)
         {
+            byte[] bytes = null;
             try
             {
-                using (System.IO.StreamWriter writer = new System.IO.StreamWriter(filePath)) { System.Xml.Serialization.XmlSerializer xs = new System.Xml.Serialization.XmlSerializer(typeof(T)); xs.Serialize(writer, obj); }
-            }
-            catch (Exception ex) { }
-        }
-        /// <summary>     
-        /// 从某一XML文件反序列化到某一类型   
-        /// </summary>    
-        /// <param name="filePath">待反序列化的XML文件名称</param>  
-        /// <param name="type">反序列化出的</param>  
-        /// <returns></returns>    
-        public static T DeserializeFromXml<T>(string filePath)
-        {
-            try
-            {
-                if (!System.IO.File.Exists(filePath))
-                    throw new ArgumentNullException(filePath + " not Exists");
-                using (System.IO.StreamReader reader = new System.IO.StreamReader(filePath))
+                using (System.IO.MemoryStream writer = new System.IO.MemoryStream())
                 {
                     System.Xml.Serialization.XmlSerializer xs = new System.Xml.Serialization.XmlSerializer(typeof(T));
-                    T ret = (T)xs.Deserialize(reader);
-                    return ret;
+                    xs.Serialize(writer, obj);
+                    bytes = writer.ToArray();
                 }
+            }
+            catch (Exception ex) { }
+            return bytes;
+        }
+
+        public static string GetRemoteCfgUrl()
+        {
+            var host = ConfigurationManager.AppSettings["remote_cfg_host"] ?? "";
+            var port = ConfigurationManager.AppSettings["remote_cfg_port"] ?? "";
+            return $"http://{host}:{port}/ConfigVersionHandler.ashx";
+        }
+
+        public static T DeserializeFromXml<T>(string xmlStr)
+        {
+            var bytes = Encoding.UTF8.GetBytes(xmlStr);
+            try
+            {
+                System.Xml.Serialization.XmlSerializer xs = new System.Xml.Serialization.XmlSerializer(typeof(T));
+                T ret = (T)xs.Deserialize(new MemoryStream(bytes));
+                return ret;
             }
             catch (Exception ex)
             {
                 return default(T);
             }
         }
+
+
+        public static string HttpPost(string Url, string postDataStr)
+        {
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
+                request.Method = "POST";
+                request.ContentType = "text/xml";
+                //request.ContentLength = Encoding.UTF8.GetByteCount(postDataStr);
+                Stream myRequestStream = request.GetRequestStream();
+                StreamWriter myStreamWriter = new StreamWriter(myRequestStream, Encoding.UTF8);
+                myStreamWriter.Write(postDataStr);
+                myStreamWriter.Close();
+
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+                Stream myResponseStream = response.GetResponseStream();
+                StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.UTF8);
+                string retString = myStreamReader.ReadToEnd();
+                myStreamReader.Close();
+                myResponseStream.Close();
+
+                return retString;
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return null;
+        }
+
+        public static string HttpGet(string Url, string postDataStr)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url + (postDataStr == "" ? "" : "?") + postDataStr);
+            request.Method = "GET";
+            request.ContentType = "text/html;charset=UTF-8";
+
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream myResponseStream = response.GetResponseStream();
+            StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
+            string retString = myStreamReader.ReadToEnd();
+            myStreamReader.Close();
+            myResponseStream.Close();
+
+            return retString;
+        }
     }
+
 }
