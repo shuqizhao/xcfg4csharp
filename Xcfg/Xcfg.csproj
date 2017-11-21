@@ -46,6 +46,7 @@
     <Compile Include="RemoteConfigSectionCollection.cs" />
     <Compile Include="XmlConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XmlConfigManager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -99,6 +99,21 @@ namespace Xcfg
             }
         }
 
+        public static XmlConfig DeserializeFromXml(string xmlStr,Type type)
+        {
+            var bytes = Encoding.UTF8.GetBytes(xmlStr);
+            try
+            {
+                System.Xml.Serialization.XmlSerializer xs = new System.Xml.Serialization.XmlSerializer(type);
+                var ret = (XmlConfig)xs.Deserialize(new MemoryStream(bytes));
+                return ret;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         public static string GetRemoteCfgShortUrl()
         {
             var host = ConfigurationManager.AppSettings["remote_cfg_host"] ?? "";
@@ -151,6 +166,64 @@ namespace Xcfg
 
             return retString;
         }
+
+        internal static RemoteConfigSection GetRemoteConfigSectionParam(string cfgName)
+        {
+            var rcfg = new RemoteConfigSectionCollection();
+            rcfg.Application = Helper.GetAppName();
+            rcfg.Machine = Environment.MachineName;
+            rcfg.Environment = Helper.GetEnvironment();
+            rcfg.Sections = new RemoteConfigSection[1];
+            rcfg.Sections[0] = new RemoteConfigSection { SectionName = cfgName.ToLower(), MajorVersion = 1, MinorVersion = 0 };
+            var rcfgResult = GetServerVersions(rcfg);
+            if (rcfgResult == null || rcfgResult.Sections.Length == 0)
+            {
+                return null;
+            }
+            else
+            {
+                return rcfgResult.Sections[0];
+            }
+        }
+
+        internal static RemoteConfigSectionCollection GetServerVersions(RemoteConfigSectionCollection rcfg)
+        {
+            var bytes = Helper.SerializeToXml(rcfg);
+            var url = Helper.GetRemoteCfgUrl();
+            var xmlStr = Helper.HttpPost(url, Encoding.UTF8.GetString(bytes));
+            return Helper.DeserializeFromXml<RemoteConfigSectionCollection>(xmlStr);
+        }
+
+        internal static bool DownloadRemoteCfg(string sectionName, string url, string targetPath)
+        {
+            try
+            {
+                if (!url.StartsWith("http"))
+                {
+                    url = Helper.GetRemoteCfgShortUrl() + "/" + url;
+                }
+
+                var data = Helper.HttpGet(url, "");
+
+                var tempFile = targetPath + "." + Guid.NewGuid();
+
+                File.WriteAllText(tempFile, data);
+
+                if (File.Exists(targetPath))
+                {
+                    File.Delete(targetPath);
+                }
+
+                FileInfo file = new FileInfo(tempFile);
+                file.MoveTo(targetPath);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
     }
 
 }

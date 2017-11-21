@@ -10,10 +10,19 @@ namespace Xcfg.Console
     [XmlRoot("connectionStrings")]
     public class ConnectionStrings:XmlConfig<ConnectionStrings>
     {
-        [XmlAttribute]
-        public int IntValue { get; set; }
+        [XmlElement("add")]
+        public ConnectionString[] Conns { get; set; }
+    }
 
-        [XmlText]
-        public string StrValue { get; set; }
+    public class ConnectionString
+    {
+        [XmlAttribute("name")]
+       public string Name { get; set; }
+
+        [XmlAttribute("providerName")]
+        public string ProviderName { get; set; }
+
+        [XmlAttribute("connectionString")]
+        public string ConnectionStr { get; set; }
     }
 }
