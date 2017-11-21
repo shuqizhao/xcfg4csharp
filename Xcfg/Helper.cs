@@ -125,7 +125,7 @@ namespace Xcfg
         {
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url);
+                HttpWebRequest request = (HttpWebRequest) WebRequest.Create(Url);
                 request.Method = "POST";
                 request.ContentType = "text/xml";
                 //request.ContentLength = Encoding.UTF8.GetByteCount(postDataStr);
@@ -134,7 +134,7 @@ namespace Xcfg
                 myStreamWriter.Write(postDataStr);
                 myStreamWriter.Close();
 
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                HttpWebResponse response = (HttpWebResponse) request.GetResponse();
 
                 Stream myResponseStream = response.GetResponseStream();
                 StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.UTF8);
@@ -153,18 +153,26 @@ namespace Xcfg
 
         public static string HttpGet(string url, string postDataStr)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url + (postDataStr == "" ? "" : "?") + postDataStr);
-            request.Method = "GET";
-            request.ContentType = "text/html;charset=UTF-8";
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url + (postDataStr == "" ? "" : "?") + postDataStr);
+                request.Method = "GET";
+                request.ContentType = "text/html;charset=UTF-8";
 
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            Stream myResponseStream = response.GetResponseStream();
-            StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
-            string retString = myStreamReader.ReadToEnd();
-            myStreamReader.Close();
-            myResponseStream.Close();
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream myResponseStream = response.GetResponseStream();
+                StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
+                string retString = myStreamReader.ReadToEnd();
+                myStreamReader.Close();
+                myResponseStream.Close();
 
-            return retString;
+                return retString;
+            }
+            catch (Exception ex)
+            {
+                return "";
+            }
+           
         }
 
         internal static RemoteConfigSection GetRemoteConfigSectionParam(string cfgName)
