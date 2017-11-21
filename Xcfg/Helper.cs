@@ -81,9 +81,7 @@ namespace Xcfg
 
         public static string GetRemoteCfgUrl()
         {
-            var host = ConfigurationManager.AppSettings["remote_cfg_host"] ?? "";
-            var port = ConfigurationManager.AppSettings["remote_cfg_port"] ?? "";
-            return $"http://{host}:{port}/ConfigVersionHandler.ashx";
+            return GetRemoteCfgShortUrl() +"/ConfigVersionHandler.ashx";
         }
 
         public static T DeserializeFromXml<T>(string xmlStr)
@@ -101,6 +99,12 @@ namespace Xcfg
             }
         }
 
+        public static string GetRemoteCfgShortUrl()
+        {
+            var host = ConfigurationManager.AppSettings["remote_cfg_host"] ?? "";
+            var port = ConfigurationManager.AppSettings["remote_cfg_port"] ?? "";
+            return $"http://{host}:{port}";
+        }
 
         public static string HttpPost(string Url, string postDataStr)
         {
@@ -132,9 +136,9 @@ namespace Xcfg
             return null;
         }
 
-        public static string HttpGet(string Url, string postDataStr)
+        public static string HttpGet(string url, string postDataStr)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Url + (postDataStr == "" ? "" : "?") + postDataStr);
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url + (postDataStr == "" ? "" : "?") + postDataStr);
             request.Method = "GET";
             request.ContentType = "text/html;charset=UTF-8";
 

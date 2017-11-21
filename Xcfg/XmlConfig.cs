@@ -42,11 +42,16 @@ namespace Xcfg
             Instance = LoadLocalCfg(cfgPath, 1, 0);
             if (Instance != null)
             {
-
+                //add
             }
             else
             {
                 var rcs = GetRemoteConfigSectionParam(cfgName);
+                var sucess = DownloadRemoteCfg("", rcs.DownloadUrl, cfgPath);
+                if (sucess)
+                {
+                    //add
+                }
             }
         }
 
@@ -83,13 +88,43 @@ namespace Xcfg
         [XmlAttribute("minor")]
         public int Minor { get; set; }
 
-        public static T LoadLocalCfg(string cfgPath,int major,int minor)
+        private static T LoadLocalCfg(string cfgPath,int major,int minor)
         {
             if(!File.Exists(cfgPath))
             {
                 return default(T);
             }
             return Helper.DeserializeFromXml<T>(cfgPath);
+        }
+
+        private static bool DownloadRemoteCfg(string sectionName,string url,string targetPath)
+        {
+            try
+            {
+                if (!url.StartsWith("http"))
+                {
+                    url = Helper.GetRemoteCfgShortUrl() + "/" + url;
+                }
+
+                var data = Helper.HttpGet(url, "");
+
+                var tempFile = targetPath + "." + Guid.NewGuid();
+
+                File.WriteAllText(tempFile, data);
+
+                if (File.Exists(targetPath))
+                {
+                    File.Delete(targetPath);
+                }
+
+                FileInfo file = new FileInfo(tempFile);
+                file.MoveTo(targetPath);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
         }
     }
 }
