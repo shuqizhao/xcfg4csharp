@@ -86,9 +86,9 @@ namespace Xcfg
 
         public static T DeserializeFromXml<T>(string xmlStr)
         {
-            var bytes = Encoding.UTF8.GetBytes(xmlStr);
             try
             {
+                var bytes = Encoding.UTF8.GetBytes(xmlStr);
                 System.Xml.Serialization.XmlSerializer xs = new System.Xml.Serialization.XmlSerializer(typeof(T));
                 T ret = (T)xs.Deserialize(new MemoryStream(bytes));
                 return ret;
@@ -101,9 +101,9 @@ namespace Xcfg
 
         public static XmlConfig DeserializeFromXml(string xmlStr,Type type)
         {
-            var bytes = Encoding.UTF8.GetBytes(xmlStr);
             try
             {
+                var bytes = Encoding.UTF8.GetBytes(xmlStr);
                 System.Xml.Serialization.XmlSerializer xs = new System.Xml.Serialization.XmlSerializer(type);
                 var ret = (XmlConfig)xs.Deserialize(new MemoryStream(bytes));
                 return ret;
@@ -121,14 +121,14 @@ namespace Xcfg
             return $"http://{host}:{port}";
         }
 
-        public static string HttpPost(string Url, string postDataStr)
+        public static string HttpPost(string url, string postDataStr)
         {
             try
             {
-                HttpWebRequest request = (HttpWebRequest) WebRequest.Create(Url);
+                HttpWebRequest request = (HttpWebRequest) WebRequest.Create(url);
                 request.Method = "POST";
                 request.ContentType = "text/xml";
-                //request.ContentLength = Encoding.UTF8.GetByteCount(postDataStr);
+                request.Timeout = 2000;
                 Stream myRequestStream = request.GetRequestStream();
                 StreamWriter myStreamWriter = new StreamWriter(myRequestStream, Encoding.UTF8);
                 myStreamWriter.Write(postDataStr);
@@ -146,9 +146,8 @@ namespace Xcfg
             }
             catch (Exception ex)
             {
-
+                return "";
             }
-            return null;
         }
 
         public static string HttpGet(string url, string postDataStr)
@@ -158,7 +157,7 @@ namespace Xcfg
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url + (postDataStr == "" ? "" : "?") + postDataStr);
                 request.Method = "GET";
                 request.ContentType = "text/html;charset=UTF-8";
-
+                request.Timeout = 2000;
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 Stream myResponseStream = response.GetResponseStream();
                 StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.GetEncoding("utf-8"));
