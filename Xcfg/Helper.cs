@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Xcfg
 {
@@ -212,6 +213,8 @@ namespace Xcfg
 
                 var data = Helper.HttpGet(url, "");
 
+                data = FormatXml(data);
+
                 var tempFile = targetPath + "." + Guid.NewGuid();
 
                 File.WriteAllText(tempFile, data);
@@ -229,6 +232,30 @@ namespace Xcfg
             {
                 return false;
             }
+        }
+
+        internal static string FormatXml(string xmlStr)
+        {
+            XmlDocument xd = new XmlDocument();
+            xd.LoadXml(xmlStr);
+            StringBuilder sb = new StringBuilder();
+            StringWriter sw = new StringWriter(sb);
+            XmlTextWriter xtw = null;
+            try
+            {
+                xtw = new XmlTextWriter(sw)
+                {
+                    Formatting = Formatting.Indented,
+                    Indentation = 1,
+                    IndentChar = '\t'
+                };
+                xd.WriteTo(xtw);
+            }
+            finally
+            {
+                xtw?.Close();
+            }
+            return sb.ToString();
         }
 
     }
