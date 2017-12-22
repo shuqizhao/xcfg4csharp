@@ -7,7 +7,9 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-
+#if NETSTANDARD2_0
+using Microsoft.Extensions.Configuration;
+#endif
 namespace Xcfg
 {
     public static class Helper
@@ -17,14 +19,40 @@ namespace Xcfg
         public const string Testing = "testing";
         public const string Labs = "labs";
 
+#if NETSTANDARD2_0
+        public static IConfigurationRoot JsonConfigurationManager
+        {
+            get
+            {
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json");
+
+                return builder.Build();
+            }
+        }
+#endif
+
         public static string GetCfgFolder()
         {
-            return "c:/xcfg.configs";
+            var dd = System.Environment.OSVersion;
+
+            if (dd.VersionString.Contains("Windows"))
+            {
+                return "c:/xcfg.configs";
+            }
+            else
+            {
+                return "/usr/local/etc/xcfg.configs";
+            }
         }
 
         public static string GetAppName()
         {
-            string appName = ConfigurationManager.AppSettings["appname"]??"";
+            string appName = ConfigurationManager.AppSettings["appname"] ?? "";
+#if NETSTANDARD2_0
+            appName = JsonConfigurationManager["appname"] ?? "";
+#endif
             if (string.IsNullOrWhiteSpace(appName))
             {
                 string filePath = System.AppDomain.CurrentDomain.BaseDirectory;
@@ -36,7 +64,10 @@ namespace Xcfg
 
         public static string GetEnvironment()
         {
-            string environment = ConfigurationManager.AppSettings["environment"]??"";
+            string environment = ConfigurationManager.AppSettings["environment"] ?? "";
+#if NETSTANDARD2_0
+            environment = JsonConfigurationManager["environment"] ?? "";
+#endif
             switch (environment.ToLower())
             {
                 case Product:
@@ -82,7 +113,7 @@ namespace Xcfg
 
         public static string GetRemoteCfgUrl()
         {
-            return GetRemoteCfgShortUrl() +"/ConfigVersionHandler.ashx";
+            return GetRemoteCfgShortUrl() + "/ConfigVersionHandler.ashx";
         }
 
         public static T DeserializeFromXml<T>(string xmlStr)
@@ -100,7 +131,7 @@ namespace Xcfg
             }
         }
 
-        public static XmlConfig DeserializeFromXml(string xmlStr,Type type)
+        public static XmlConfig DeserializeFromXml(string xmlStr, Type type)
         {
             try
             {
@@ -119,6 +150,10 @@ namespace Xcfg
         {
             var host = ConfigurationManager.AppSettings["remote_cfg_host"] ?? "";
             var port = ConfigurationManager.AppSettings["remote_cfg_port"] ?? "";
+#if NETSTANDARD2_0
+            host = JsonConfigurationManager["remote_cfg_host"] ?? "";
+            port = JsonConfigurationManager["remote_cfg_port"] ?? "";
+#endif
             return $"http://{host}:{port}";
         }
 
@@ -126,7 +161,7 @@ namespace Xcfg
         {
             try
             {
-                HttpWebRequest request = (HttpWebRequest) WebRequest.Create(url);
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
                 request.Method = "POST";
                 request.ContentType = "text/xml";
                 request.Timeout = 2000;
@@ -135,7 +170,7 @@ namespace Xcfg
                 myStreamWriter.Write(postDataStr);
                 myStreamWriter.Close();
 
-                HttpWebResponse response = (HttpWebResponse) request.GetResponse();
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
                 Stream myResponseStream = response.GetResponseStream();
                 StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.UTF8);
@@ -172,7 +207,7 @@ namespace Xcfg
             {
                 return "";
             }
-           
+
         }
 
         internal static RemoteConfigSection GetRemoteConfigSectionParam(string cfgName)
