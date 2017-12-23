@@ -24,9 +24,15 @@ namespace Xcfg
         {
             get
             {
+                var baseDir = Directory.GetCurrentDirectory();
+                var cfgName = "appsettings.json";
+                if (!File.Exists($"{baseDir}/{cfgName}"))
+                {
+                    return null;
+                }
                 var builder = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json");
+                    .SetBasePath(baseDir)
+                    .AddJsonFile(cfgName);
 
                 return builder.Build();
             }
@@ -51,7 +57,11 @@ namespace Xcfg
         {
             string appName = ConfigurationManager.AppSettings["appname"] ?? "";
 #if NETSTANDARD2_0
-            appName = JsonConfigurationManager["appname"] ?? "";
+            if (JsonConfigurationManager != null
+            && !string.IsNullOrWhiteSpace(JsonConfigurationManager["appname"]))
+            {
+                appName = JsonConfigurationManager["appname"];
+            }
 #endif
             if (string.IsNullOrWhiteSpace(appName))
             {
@@ -66,7 +76,11 @@ namespace Xcfg
         {
             string environment = ConfigurationManager.AppSettings["environment"] ?? "";
 #if NETSTANDARD2_0
-            environment = JsonConfigurationManager["environment"] ?? "";
+            if (JsonConfigurationManager != null
+                       && !string.IsNullOrWhiteSpace(JsonConfigurationManager["environment"]))
+            {
+                environment = JsonConfigurationManager["environment"];
+            }
 #endif
             switch (environment.ToLower())
             {
@@ -151,8 +165,16 @@ namespace Xcfg
             var host = ConfigurationManager.AppSettings["remote_cfg_host"] ?? "";
             var port = ConfigurationManager.AppSettings["remote_cfg_port"] ?? "";
 #if NETSTANDARD2_0
-            host = JsonConfigurationManager["remote_cfg_host"] ?? "";
-            port = JsonConfigurationManager["remote_cfg_port"] ?? "";
+            if (JsonConfigurationManager != null
+                        && !string.IsNullOrWhiteSpace(JsonConfigurationManager["remote_cfg_host"]))
+            {
+                host = JsonConfigurationManager["remote_cfg_host"];
+            }
+            if (JsonConfigurationManager != null
+            && !string.IsNullOrWhiteSpace(JsonConfigurationManager["remote_cfg_port"]))
+            {
+                port = JsonConfigurationManager["remote_cfg_port"];
+            }
 #endif
             return $"http://{host}:{port}";
         }
