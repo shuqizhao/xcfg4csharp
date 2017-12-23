@@ -19,13 +19,14 @@ namespace Xcfg
         [XmlAttribute("minorVersion")]
         public int Minor { get; set; }
     }
-    public class XmlConfig<T> :XmlConfig where T : XmlConfig,new()
+    public class XmlConfig<T> : XmlConfig where T : XmlConfig, new()
     {
         protected XmlConfig()
         {
-            
+
         }
-        public static T Instance {
+        public static T Instance
+        {
             get
             {
                 var cfgName = GetCfgName();
@@ -69,9 +70,16 @@ namespace Xcfg
             var cfgName = GetCfgName();
             var cfgPath = cfgFolder + "/" + cfgName + ".config";
             Instance = LoadLocalCfg(cfgPath);
-            if (Instance == null)
+            var majorVersion = 1;
+            var minorVersion = 0;
+            if (Instance != null)
             {
-                var rcs = Helper.GetRemoteConfigSectionParam(cfgName);
+                majorVersion = Instance.Major;
+                minorVersion = Instance.Minor;
+            }
+            var rcs = Helper.GetRemoteConfigSectionParam(cfgName, majorVersion, minorVersion);
+            if (rcs != null)
+            {
                 var sucess = Helper.DownloadRemoteCfg("", rcs.DownloadUrl, cfgPath);
                 if (sucess)
                 {
@@ -83,7 +91,7 @@ namespace Xcfg
 
         private static T LoadLocalCfg(string cfgPath)
         {
-            if(!File.Exists(cfgPath))
+            if (!File.Exists(cfgPath))
             {
                 return default(T);
             }

@@ -232,16 +232,16 @@ namespace Xcfg
 
         }
 
-        internal static RemoteConfigSection GetRemoteConfigSectionParam(string cfgName)
+        internal static RemoteConfigSection GetRemoteConfigSectionParam(string cfgName, int marjor = 1, int minor = 0)
         {
             var rcfg = new RemoteConfigSectionCollection();
             rcfg.Application = Helper.GetAppName();
             rcfg.Machine = Environment.MachineName;
             rcfg.Environment = Helper.GetEnvironment();
             rcfg.Sections = new RemoteConfigSection[1];
-            rcfg.Sections[0] = new RemoteConfigSection { SectionName = cfgName.ToLower(), MajorVersion = 1, MinorVersion = 0 };
+            rcfg.Sections[0] = new RemoteConfigSection { SectionName = cfgName.ToLower(), MajorVersion = marjor, MinorVersion = minor };
             var rcfgResult = GetServerVersions(rcfg);
-            if (rcfgResult == null || rcfgResult.Sections.Length == 0)
+            if (rcfgResult == null || rcfgResult.Sections == null || rcfgResult.Sections.Length == 0)
             {
                 return null;
             }
